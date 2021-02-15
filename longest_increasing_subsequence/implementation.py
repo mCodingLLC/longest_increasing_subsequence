@@ -180,6 +180,9 @@ class _OrderReversed:
 
     >>> _OrderReversed(0) > _OrderReversed(1)
     True
+
+    >>> repr(_OrderReversed(0))
+    '_OrderReversed(0)'
     """
 
     def __init__(self, o):
