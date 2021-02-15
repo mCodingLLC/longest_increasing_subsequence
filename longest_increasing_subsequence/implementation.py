@@ -48,7 +48,7 @@ def longest_decreasing_subsequence(seq: Sequence[T], strict=False, key: Callable
     [3, 2, 1, 0]
 
     :param seq: A sequence-like container of comparable objects.
-    :param strict: Whether the subsequence must be strictly increasing.
+    :param strict: Whether the subsequence must be strictly decreasing.
     :param key: If not None, values in sequence are compared by comparing their keys.
     :return: The longest decreasing subsequence in seq as a list.
     """
@@ -93,7 +93,7 @@ def longest_decreasing_subsequence_indices(seq: Sequence[T], strict=False, key: 
     [4, 5, 6, 7]
 
     :param seq: A sequence-like container of comparable objects.
-    :param strict: Whether the subsequence must be strictly increasing.
+    :param strict: Whether the subsequence must be strictly decreasing.
     :param key: If not None, values in sequence are compared by comparing their keys.
     :return: A list of indices of the longest decreasing subsequence in seq.
     """
