@@ -2,7 +2,7 @@
 
 __author__ = """James Murphy"""
 __email__ = 'james@mcoding.io'
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 from ._implementation import (longest_increasing_subsequence,
                               longest_decreasing_subsequence,
