@@ -2,7 +2,7 @@
 Usage
 =====
 
-To use Longest Increasing Subsequence in a project::
+To use Longest Increasing Subsequence in a project:
 
 .. code-block:: python3
 
