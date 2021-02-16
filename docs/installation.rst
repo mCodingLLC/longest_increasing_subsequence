@@ -12,7 +12,7 @@ To install Longest Increasing Subsequence, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install longest_increasing_subsequence
+    $ pip install longest-increasing-subsequence
 
 This is the preferred method to install Longest Increasing Subsequence, as it will always install the most recent stable release.
 

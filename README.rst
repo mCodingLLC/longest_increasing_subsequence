@@ -20,7 +20,7 @@ Install with:
 
 .. code-block:: console
 
-    pip install longest_increasing_subsequence
+    pip install longest-increasing-subsequence
 
 Usage:
 
