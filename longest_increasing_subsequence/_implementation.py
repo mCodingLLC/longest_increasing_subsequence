@@ -185,6 +185,8 @@ class _OrderReversed:
     '_OrderReversed(0)'
     """
 
+    __slots__ = ('obj',)
+
     def __init__(self, o):
         self.obj = o
 
