@@ -1,4 +1,5 @@
 """Implementation of the longest increasing subsequence algorithm."""
+import operator
 from bisect import bisect_right, bisect_left
 from typing import TypeVar, Optional, List, Any, Iterator, Sequence, Callable
 
@@ -52,7 +53,11 @@ def longest_decreasing_subsequence(seq: Sequence[T], strict=False, key: Callable
     :param key: If not None, values in sequence are compared by comparing their keys.
     :return: The longest decreasing subsequence in seq as a list.
     """
-    return _longest_monotone_subsequence(seq, False, strict, key)
+    try:
+        return _longest_monotone_subsequence(seq, False, strict, key, True)
+    except TypeError:
+        pass
+    return _longest_monotone_subsequence(seq, False, strict, key, False)
 
 
 def longest_increasing_subsequence_indices(seq: Sequence[T], strict=False, key: Callable = None) -> List[int]:
@@ -97,10 +102,14 @@ def longest_decreasing_subsequence_indices(seq: Sequence[T], strict=False, key: 
     :param key: If not None, values in sequence are compared by comparing their keys.
     :return: A list of indices of the longest decreasing subsequence in seq.
     """
-    return _longest_monotone_subsequence_indices(seq, False, strict, key)
+    try:
+        return _longest_monotone_subsequence_indices(seq, False, strict, key, True)
+    except TypeError:
+        pass
+    return _longest_monotone_subsequence_indices(seq, False, strict, key, False)
 
 
-def _longest_monotone_subsequence(seq: Sequence[T], increasing=True, strict=False, key: Callable = None) -> List[T]:
+def _longest_monotone_subsequence(seq: Sequence[T], increasing=True, strict=False, key: Callable = None, assume_negatable=True) -> List[T]:
     """
     Returns the a list of the longest increasing (respectively decreasing) subsequence of the given sequence.
     There may be other increasing (respectively decreasing) subsequences of the same length.
@@ -111,12 +120,14 @@ def _longest_monotone_subsequence(seq: Sequence[T], increasing=True, strict=Fals
     :param increasing: Whether the subsequence should be increasing or decreasing.
     :param strict: Whether the subsequence must be strictly monotone.
     :param key: If not None, values in sequence are compared by comparing their keys.
+    :param assume_negatable: If True (the default), assume that negation (unary -) is defined and is order-reversing on objects or keys.
+                             For non-negatable types, set this option to False.
     :return: An iterator of indices of the longest monotone subsequence in seq.
     """
-    return [seq[idx] for idx in _longest_monotone_subsequence_indices_iter(seq, increasing, strict, key)]
+    return [seq[idx] for idx in _longest_monotone_subsequence_indices_iter(seq, increasing, strict, key, assume_negatable)]
 
 
-def _longest_monotone_subsequence_indices(seq: Sequence[T], increasing=True, strict=False, key: Callable = None) -> List[int]:
+def _longest_monotone_subsequence_indices(seq: Sequence[T], increasing=True, strict=False, key: Callable = None, assume_negatable=True) -> List[int]:
     """
     Gives a list of the indices of the longest increasing (respectively decreasing) subsequence of the given sequence.
     There may be other increasing (respectively decreasing) subsequences of the same length.
@@ -127,12 +138,14 @@ def _longest_monotone_subsequence_indices(seq: Sequence[T], increasing=True, str
     :param increasing: Whether the subsequence should be increasing or decreasing.
     :param strict: Whether the subsequence must be strictly monotone.
     :param key: If not None, values in sequence are compared by comparing their keys.
+    :param assume_negatable: If True (the default), assume that negation (unary -) is defined and is order-reversing on objects or keys.
+                             For non-negatable types, set this option to False.
     :return: An iterator of indices of the longest monotone subsequence in seq.
     """
-    return list(_longest_monotone_subsequence_indices_iter(seq, increasing, strict, key))
+    return list(_longest_monotone_subsequence_indices_iter(seq, increasing, strict, key, assume_negatable))
 
 
-def _longest_monotone_subsequence_indices_iter(seq: Sequence[T], increasing=True, strict=False, key: Callable = None) -> Iterator[int]:
+def _longest_monotone_subsequence_indices_iter(seq: Sequence[T], increasing=True, strict=False, key: Callable = None, assume_negatable=True) -> Iterator[int]:
     """
     Yields the indices of the longest increasing (respectively decreasing) subsequence of the given sequence.
     There may be other monotone subsequences of the same length.
@@ -143,6 +156,8 @@ def _longest_monotone_subsequence_indices_iter(seq: Sequence[T], increasing=True
     :param increasing: Whether the subsequence should be increasing or decreasing.
     :param strict: Whether the subsequence must be strictly monotone.
     :param key: If not None, values in sequence are compared by comparing their keys.
+    :param assume_negatable: If True (the default), assume that negation (unary -) is defined and is order-reversing on objects or keys.
+                             For non-negatable types, set this option to False.
     :return: An iterator of indices of the longest monotone subsequence in seq.
     """
     if not seq:
@@ -153,7 +168,7 @@ def _longest_monotone_subsequence_indices_iter(seq: Sequence[T], increasing=True
     val_min_of_len_plus1: List[Any] = []  # the smallest value ending a subsequence of a given length+1
 
     bisect = bisect_right if not strict else bisect_left
-    key_fn = _choose_key_function(key, increasing)
+    key_fn = _choose_key_function(key, increasing, assume_negatable)
     keys = seq if key_fn is None else map(key_fn, seq)
 
     for i, curr_key in enumerate(keys):
@@ -200,37 +215,54 @@ class _OrderReversed:
         return f'{self.__class__.__name__}({self.obj!r})'
 
 
-def _choose_key_function(key: Optional[Callable], increasing: bool) -> Optional[Callable]:
+def _choose_key_function(key: Optional[Callable], increasing: bool, assume_negatable: bool) -> Optional[Callable]:
     """
     Gives back the key function with its order optionally reversed. None represents the identity function.
 
-    >>> _choose_key_function(None, True) is None
+    >>> _choose_key_function(None, True, True) is None
     True
 
-    >>> fn = _choose_key_function(None, False)
+    >>> _choose_key_function(None, True, False) is None
+    True
+
+    >>> fn = _choose_key_function(None, False, True)
     >>> fn(0) > fn(1)
     True
 
-    >>> fn = _choose_key_function(len, True)
+    >>> fn = _choose_key_function(None, False, False)
+    >>> fn(0) > fn(1)
+    True
+
+    >>> fn = _choose_key_function(len, True, False)
     >>> fn("X") < fn("AA")
     True
 
-    >>> fn = _choose_key_function(len, False)
+    >>> fn = _choose_key_function(len, True, True)
+    >>> fn("X") < fn("AA")
+    True
+
+    >>> fn = _choose_key_function(len, False, False)
     >>> fn("AA") < fn("X")
     True
     """
-    if key is None and increasing:
-        key_fn = None
-    elif key is None:
-        def key_fn(v):
-            return _OrderReversed(v)
-    elif not increasing:
-        orig_key = key
-
-        def key_fn(v):
-            return _OrderReversed(orig_key(v))
+    if key is None:
+        if increasing:
+            key_fn = None
+        elif assume_negatable:
+            key_fn = operator.neg
+        else:
+            def key_fn(v):
+                return _OrderReversed(v)
     else:
-        key_fn = key
+        orig_key = key
+        if increasing:
+            key_fn = orig_key
+        elif assume_negatable:
+            def key_fn(v):
+                return -orig_key(v)
+        else:
+            def key_fn(v):
+                return _OrderReversed(orig_key(v))
     return key_fn
 
 
